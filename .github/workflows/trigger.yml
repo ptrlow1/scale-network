@@ -37,6 +37,21 @@ jobs:
       subcomm: ${{ steps.job.outputs.subcomm }}
       subargs: ${{ steps.job.outputs.subargs }}
       ref: ${{ steps.job.outputs.ref }}
+  build:
+    name: Dispatch openwrt build
+    runs-on: ubuntu-18.04
+    needs: verify
+    if: >
+      needs.verify.outputs.subcomm == 'openwrt'
+      && startsWith(needs.verify.outputs.subargs, 'all')
+    steps:
+    - name: dispatch_build
+      run: |
+        set -euo pipefail
+        ./openwrt/scripts/dispatch_build "${{ needs.verify.outputs.ref }}" 
+        # Need a wait to poll til dispatch build complete
+        echo ::set-output name=pipeline::$PIPELINE
+
   flash:
     name: Flash netgear hardware
     runs-on: ubuntu-18.04
